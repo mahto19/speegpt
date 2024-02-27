@@ -1,0 +1,65 @@
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { useState, useEffect } from "react";
+
+const ExtractTxtAI = () => {
+  const genAI = new GoogleGenerativeAI(
+    "AIzaSyBaUClggwlBDq-HveJCU4kA197nR3KADs0"
+  );
+
+  const { transcript, browserSupportsSpeechRecognition, listening } =
+    useSpeechRecognition();
+
+  useEffect(() => {
+    if (!listening && transcript) {
+      run(transcript);
+    }
+  }, [listening, transcript]);
+
+  if (!browserSupportsSpeechRecognition) {
+    return null;
+  }
+
+  const startListening = () => {
+    SpeechRecognition.startListening({
+      continuous: false,
+      language: "en-IN",
+    });
+  };
+
+  const voc = () => {
+    if (!browserSupportsSpeechRecognition) {
+      return null;
+    }
+    startListening();
+  };
+
+  const [startingDate, setStartingDate] = useState(null);
+  const [endingDate, setEndingDate] = useState(null);
+  const [persons, setPersons] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [childCount, setChildCount] = useState(null);
+  const [adultCount, setAdultCount] = useState(null);
+
+  async function run(prompt) {
+    console.log("STarting...");
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    setStartingDate(text);
+    console.log(text);
+  }
+
+  return (
+    <>
+      <button onClick={voc}>Start Listening</button>
+      <p>{transcript}</p>
+      <p>{startingDate}</p>
+    </>
+  );
+};
+
+export default ExtractTxtAI;
